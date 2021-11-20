@@ -7,6 +7,25 @@ import numpy as np
 
 
 def get_osm_data(lor_gdf, tags, crs="EPSG:25833", location="Berlin, Germany"):
+    """
+    get_osm_data [summary]
+
+    Parameters
+    ----------
+    lor_gdf : str
+        path to the lor data (i.e. lor_friedrichshain_kreuzberg.geojson)
+    tags : dict
+        dictionary containing as many tags from OSM (e.g. {"amenity": ["restaurant", "cafe", "fast_food", "bar", "pub", "ice_cream"]}) you want
+    crs : str, optional
+        Coordinate system, by default "EPSG:25833"
+    location : str, optional
+        City you want to obtain OSM data from, by default "Berlin, Germany"
+
+    Returns
+    -------
+    obj
+        geopandas dataframe containing merged LOR and POI data
+    """
     # Load data
     try:
         lor_gdf = gpd.read_file(lor_gdf)
@@ -30,6 +49,27 @@ def get_osm_data(lor_gdf, tags, crs="EPSG:25833", location="Berlin, Germany"):
 
 
 def calc_parking_spots(poi_lor, est_parking_spots, buffer_size=20):
+    """
+    Calculate the number of parking spots for each POI.
+
+    Parameters
+    ----------
+    poi_lor : geopandas dataframe
+        Dataframe containing POIs within Kreuzberg-Friedrichshain
+    est_parking_spots : str
+        Path to the estimated parking spots data (i.e. estimated_parking_spots_kfz.geojson)
+    buffer_size : int, optional
+        Size of the buffer (in meters) around each POI, by default 20
+        (currently a circle, but can easily be changed in any other polygon)
+
+    Returns
+    -------
+    geopandas dataframe
+        Idx0: Dataframe containing POIs within Kreuzberg-Friedrichshain with the number of parking spots for each POI.
+        Idx1: Dataframe containing POIs within Kreuzberg-Friedrichshain with polygon coordinates representing the radius around each POI.
+
+    """
+
     # Load data
     try:
         est_parking_spots = gpd.read_file(est_parking_spots)
