@@ -48,7 +48,7 @@ def get_osm_data(lor_gdf, tags, crs="EPSG:25833", location="Berlin, Germany"):
     return poi_lor
 
 
-def calc_parking_spots(poi_lor, est_parking_spots, buffer_size=20):
+def calc_parking_spots(poi_lor, est_parking_spots, agg_func="len", buffer_size=20):
     """
     Calculate the number of parking spots for each POI.
 
@@ -58,6 +58,8 @@ def calc_parking_spots(poi_lor, est_parking_spots, buffer_size=20):
         Dataframe containing POIs within Kreuzberg-Friedrichshain
     est_parking_spots : str
         Path to the estimated parking spots data (i.e. estimated_parking_spots_kfz.geojson)
+    agg_func : str, optional
+        Aggregation function: accepts "len" and "sum" (by default "len"). Len ignores capacity, sum multiplies capacity with individual points.
     buffer_size : int, optional
         Size of the buffer (in meters) around each POI, by default 20
         (currently a circle, but can easily be changed in any other polygon)
@@ -86,12 +88,20 @@ def calc_parking_spots(poi_lor, est_parking_spots, buffer_size=20):
 
     # Calculate parking spots
     intersect_parking["capacity"] = intersect_parking["capacity"].apply(int)
-    dfpivot = pd.pivot_table(
-        intersect_parking,
-        index="name_left",
-        columns="capacity",
-        aggfunc={"capacity": len},
-    )
+    if agg_func == "len":
+        dfpivot = pd.pivot_table(
+            intersect_parking,
+            index="name_left",
+            columns="capacity",
+            aggfunc={"capacity": len},
+        )
+    else:
+        dfpivot = pd.pivot_table(
+            intersect_parking,
+            index="name_left",
+            columns="capacity",
+            aggfunc={"capacity": np.sum},
+        )
     dfpivot.columns = dfpivot.columns.droplevel()
     dfpivot.index.names = ["name"]
     parking_counts = dfpivot.sum(axis=1)
